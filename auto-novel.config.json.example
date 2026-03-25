@@ -1,0 +1,16 @@
+{
+  "scrapling_mcp": {
+    "host": "192.168.1.120",
+    "port": 8000,
+    "endpoint": "/mcp"
+  },
+  "paths": {
+    "supervisor_dir": ".supervisor",
+    "agents_dir": "tools/agents",
+    "progress_dir": "docs/superpowers/progress"
+  },
+  "news_source": {
+    "url": "https://news.sina.com.cn/world/",
+    "selector": "div#subShow1 h2"
+  }
+}
