@@ -1,0 +1,161 @@
+---
+name: novel-chapter
+description: Write a novel chapter using interstellar-novelist agent, review with logic-reviewer agent, and provide suggestions for the next chapter. Reads outline.md, worldview.md, and previous 5 chapters for context.
+---
+
+# Novel Chapter Writer
+
+Automatically write a novel chapter that maintains consistency with the outline, world-building, and previous chapters.
+
+## Usage
+
+`/novel-chapter <chapter number> <chapter prompt/summary>`
+
+**Examples:**
+- `/novel-chapter 6 主角遭遇伏击，展现战斗能力`
+- `/novel-chapter 3 第一次探索地下遗迹`
+- `/novel-chapter 15 最终决战前的宁静`
+
+## Workflow
+
+1. **Read Context Files**
+   - Read `outline.md` to understand the overall story structure
+   - Read `worldview.md` to understand world rules and setting
+
+2. **Read Previous Chapters**
+   - Find and read chapters `n-5` through `n-1` (if they exist)
+   - Example: If writing chapter 10, read chapters 5-9 (or whichever exist)
+   - Use glob pattern `*.md` to find existing chapters
+
+3. **Write Chapter with interstellar-novelist Agent**
+   - Pass the outline, worldview, previous chapters, and user's prompt
+   - Request writing of chapter `n` that:
+     - Follows the outline's chapter requirements
+     - Stays consistent with world-building rules
+     - Maintains narrative continuity with previous chapters
+     - Matches the established tone and style
+
+4. **Review and Fix with logic-reviewer Agent**
+   - Review the newly written chapter for:
+     - Logical inconsistencies
+     - Contradictions with established facts
+     - Plot holes
+     - Character behavior inconsistencies
+     - Timeline issues
+   - Apply fixes to maintain logical coherence
+
+5. **Save Chapter**
+   - Save the final chapter as `n.md` (e.g., `6.md`, `15.md`)
+
+6. **Generate Next Chapter Suggestions with interstellar-novelist Agent**
+   - Read the newly saved chapter
+   - Provide suggestions for the next chapter including:
+     - Key plot points to cover
+     - Character development directions
+     - Recommended chapter prompt/summary
+     - Potential conflicts or challenges
+     - How to connect from current chapter's ending
+
+7. **Clean Up Temporary Files**
+   - Remove temporary files (e.g., `chapter_0n.md`, `chapter_0n_corrected.md`)
+   - Keep only essential files: `outline.md`, `worldview.md`, and `n.md` (chapter files)
+   - Use bash commands to safely identify and remove temporary files
+
+## Agent Prompt Templates
+
+### For interstellar-novelist Agent:
+
+```
+You are writing a novel chapter. Here is the context:
+
+**NOVEL OUTLINE:**
+【$OUTLINE_CONTENT】
+
+**WORLD-BUILDING:**
+【$WORLDVIEW_CONTENT】
+
+**RECENT CHAPTERS (for context):**
+【$PREVIOUS_CHAPTERS】
+
+**CHAPTER TO WRITE:**
+Chapter number: 【$CHAPTER_NUMBER】
+Chapter prompt: 【$ARGUMENTS】
+
+Please write this chapter following these requirements:
+1. Follow the chapter's role in the outline
+2. Maintain consistency with all world-building rules
+3. Ensure narrative continuity with previous chapters
+4. Match the established tone, style, and character voices
+5. Include vivid descriptions and engaging prose
+6. End at a natural point that sets up future developments
+
+Write the complete chapter content only, no meta-commentary.
+```
+
+### For logic-reviewer Agent:
+
+```
+Please review this novel chapter for logical issues:
+
+**CHAPTER CONTENT:**
+【$NEW_CHAPTER_CONTENT】
+
+**CONTEXT:**
+- This is chapter 【$CHAPTER_NUMBER】 of the novel
+- It follows these previous chapters: 【$PREVIOUS_CHAPTER_SUMMARY】
+- The outline requires: 【$OUTLINE_CHAPTER_REQUIREMENTS】
+- World rules: 【$WORLDVIEW_KEY_RULES】
+
+Please identify and fix:
+1. Logical inconsistencies or contradictions
+2. Plot holes or unexplained events
+3. Character behavior that contradicts established personality
+4. Timeline or sequence problems
+5. Any violations of the world-building rules
+
+Provide the corrected version of the chapter.
+```
+
+### For interstellar-novelist Agent (Next Chapter Suggestions):
+
+```
+Based on the completed chapter, please provide suggestions for the next chapter.
+
+**COMPLETED CHAPTER:**
+【$CURRENT_CHAPTER_CONTENT】
+
+**OUTLINE REQUIREMENTS FOR NEXT CHAPTER:**
+【$NEXT_CHAPTER_OUTLINE】
+
+**CONTEXT:**
+- Current chapter: 【$CHAPTER_NUMBER】
+- Next chapter: 【$NEXT_CHAPTER_NUMBER】
+- Story arc: 【$STORY_ARC_CONTEXT】
+
+Please provide:
+1. **Key Plot Points**: What should happen in the next chapter?
+2. **Character Development**: How should the characters grow or change?
+3. **Connections**: How to bridge from the current chapter's ending?
+4. **Recommended Prompt**: A concise chapter prompt/summary for writing
+5. **Potential Challenges**: What difficulties or conflicts should arise?
+6. **Tone & Atmosphere**: What mood should the next chapter have?
+
+Format your response in Chinese, with clear sections.
+```
+
+## Implementation Notes
+
+- Use `$ARGUMENTS` to capture the chapter prompt/summary from user
+- Parse chapter number from the first argument
+- The rest of the arguments form the chapter prompt
+- Use Glob tool to find existing chapter files: `[0-9]*.md` or `chapter_*.md`
+- Read files and pass their contents to agents
+- Always save the final reviewed version, not the initial draft
+- After saving chapter, read it again and call interstellar-novelist agent for next chapter suggestions
+- Display the suggestions to the user as reference for writing the next chapter
+- **Clean up temporary files**: Remove files matching patterns like `chapter_0n.md`, `chapter_0n_corrected.md`, `*_corrected.md`, but preserve `outline.md`, `worldview.md`, and `[0-9].md` (final chapter files)
+
+## Output Files
+
+- `<n>.md` - The completed and reviewed chapter (e.g., `6.md`)
+- **Console Output**: Suggestions for the next chapter (plot points, character development, recommended prompt, etc.)
